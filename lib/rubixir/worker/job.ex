@@ -1,3 +1,3 @@
-defmodule Rubixer.Worker.Job do
+defmodule Rubixir.Worker.Job do
   defstruct statement: nil, requested: nil
 end

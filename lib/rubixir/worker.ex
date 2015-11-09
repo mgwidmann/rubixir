@@ -1,7 +1,7 @@
-defmodule Rubixer.Worker do
+defmodule Rubixir.Worker do
   use GenServer
   alias Porcelain.Process, as: Proc
-  alias Rubixer.Worker.Job
+  alias Rubixir.Worker.Job
   require Logger
 
   @ruby_loop ~S"""
@@ -52,7 +52,7 @@ defmodule Rubixer.Worker do
   end
 
   def handle_info({_port, :result, %Porcelain.Result{} = result}, state) do
-    Logger.error "Rubixer: #{inspect self} received exception and exited with status: #{result.status}"
+    Logger.error "Rubixir: #{inspect self} received exception and exited with status: #{result.status}"
     {:stop, :eof_stdin, state}
   end
 

@@ -1,5 +1,5 @@
-defmodule Rubixer.Macros do
-  import Rubixer.Worker
+defmodule Rubixir.Macros do
+  import Rubixir.Worker
 
   defmacro ruby(worker, [do: block]) do
     code = to_ruby_string(block)
@@ -44,16 +44,16 @@ defmodule Rubixer.Macros do
     matches = matches
               |> Enum.reverse
               |> Enum.map(fn({:match, data, path})->
-                "raise Rubixer::MatchError.new(_rubixer_) unless #{to_ruby_string(data)} == _rubixer_#{path}\n"
+                "raise Rubixir::MatchError.new(_rubixir_) unless #{to_ruby_string(data)} == _rubixir_#{path}\n"
               end)
     variables = variables
                 |> Enum.reverse
                 |> Enum.map(fn({:path_var, path, var})->
-                  "#{var} = _rubixer_#{path}\n"
+                  "#{var} = _rubixir_#{path}\n"
                 end)
     """
-    _rubixer_ = #{to_ruby_string(rhs)}
-    #{matches}#{variables}_rubixer_
+    _rubixir_ = #{to_ruby_string(rhs)}
+    #{matches}#{variables}_rubixir_
     """
   end
 
@@ -149,7 +149,7 @@ defmodule Rubixer.Macros do
   #   |> Enum.join("\n")
   # end
   # defp raise_match_error_statement(lhs) do
-  #   "raise Rubixer::MatchError.new(_rubixer_) unless #{to_ruby_string(lhs)} == _rubixer_"
+  #   "raise Rubixir::MatchError.new(_rubixir_) unless #{to_ruby_string(lhs)} == _rubixir_"
   # end
 
 end

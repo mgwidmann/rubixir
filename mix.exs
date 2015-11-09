@@ -1,8 +1,8 @@
-defmodule Rubixer.Mixfile do
+defmodule Rubixir.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :rubixer,
+    [app: :rubixir,
      version: "0.0.1",
      elixir: "~> 1.1-dev",
      build_embedded: Mix.env == :prod,
@@ -15,7 +15,7 @@ defmodule Rubixer.Mixfile do
   # Type `mix help compile.app` for more information
   def application do
     [applications: [:logger, :porcelain],
-     mod: {Rubixer, []}]
+     mod: {Rubixir, []}]
   end
 
   # Dependencies can be Hex packages:

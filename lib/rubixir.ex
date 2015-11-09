@@ -1,9 +1,9 @@
-defmodule Rubixer do
+defmodule Rubixir do
   use Application
 
   defmacro __using__(_opts) do
     quote do
-      import Rubixer.Macros
+      import Rubixir.Macros
     end
   end
 
@@ -14,20 +14,20 @@ defmodule Rubixer do
 
     children = [
       # Define workers and child supervisors to be supervised
-      worker(Rubixer.Worker, []),
+      worker(Rubixir.Worker, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :simple_one_for_one, name: Rubixer.Supervisor]
+    opts = [strategy: :simple_one_for_one, name: Rubixir.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
-  defdelegate run(worker, statement), to: Rubixer.Worker
-  defdelegate run_sync(worker, statement), to: Rubixer.Worker
+  defdelegate run(worker, statement), to: Rubixir.Worker
+  defdelegate run_sync(worker, statement), to: Rubixir.Worker
 
   def new(opts \\ []) do
-    {:ok, worker} = Supervisor.start_child Rubixer.Supervisor, [[require: opts[:require]]]
+    {:ok, worker} = Supervisor.start_child Rubixir.Supervisor, [[require: opts[:require]]]
     worker
   end
 end

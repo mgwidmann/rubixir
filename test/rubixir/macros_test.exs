@@ -1,8 +1,8 @@
-defmodule Rubixer.MacrosTest do
+defmodule Rubixir.MacrosTest do
   use Pavlov.Case, async: true
   import Pavlov.Syntax.Expect
-  import Rubixer.Macros
-  doctest Rubixer.Macros
+  import Rubixir.Macros
+  doctest Rubixir.Macros
 
   describe "#ruby" do
 
@@ -232,9 +232,9 @@ defmodule Rubixer.MacrosTest do
       it "simple" do
         result = to_ruby_string(simple_assignment)
         expect result |> to_eq """
-        _rubixer_ = 5
-        a = _rubixer_
-        _rubixer_
+        _rubixir_ = 5
+        a = _rubixir_
+        _rubixir_
         """
       end
 
@@ -242,9 +242,9 @@ defmodule Rubixer.MacrosTest do
       it "hard" do
         result = to_ruby_string(hard_assignment)
         expect result |> to_eq """
-        _rubixer_ = 2
-        raise Rubixer::MatchError.new(_rubixer_) unless 1 == _rubixer_
-        _rubixer_
+        _rubixir_ = 2
+        raise Rubixir::MatchError.new(_rubixir_) unless 1 == _rubixir_
+        _rubixir_
         """
       end
 
@@ -252,10 +252,10 @@ defmodule Rubixer.MacrosTest do
       it "list" do
         result = to_ruby_string(list_assignment)
         expect result |> to_eq """
-        _rubixer_ = [1, 2]
-        a = _rubixer_[0]
-        b = _rubixer_[1..-1]
-        _rubixer_
+        _rubixir_ = [1, 2]
+        a = _rubixir_[0]
+        b = _rubixir_[1..-1]
+        _rubixir_
         """
       end
 
@@ -263,10 +263,10 @@ defmodule Rubixer.MacrosTest do
       it "list multi" do
         result = to_ruby_string(list_multi_assignment)
         expect result |> to_eq """
-        _rubixer_ = [1, 2]
-        a = _rubixer_[0]
-        b = _rubixer_[1]
-        _rubixer_
+        _rubixir_ = [1, 2]
+        a = _rubixir_[0]
+        b = _rubixir_[1]
+        _rubixir_
         """
       end
 
@@ -274,11 +274,11 @@ defmodule Rubixer.MacrosTest do
       it "list multi splat" do
         result = to_ruby_string(list_multi_splat_assignment)
         expect result |> to_eq """
-        _rubixer_ = [1, 2, 3]
-        a = _rubixer_[0]
-        b = _rubixer_[1]
-        c = _rubixer_[2..-1]
-        _rubixer_
+        _rubixir_ = [1, 2, 3]
+        a = _rubixir_[0]
+        b = _rubixir_[1]
+        c = _rubixir_[2..-1]
+        _rubixir_
         """
       end
 
@@ -286,9 +286,9 @@ defmodule Rubixer.MacrosTest do
       it "hard list" do
         result = to_ruby_string(hard_list_assignment)
         expect result |> to_eq """
-        _rubixer_ = [2]
-        raise Rubixer::MatchError.new(_rubixer_) unless 1 == _rubixer_[0]
-        _rubixer_
+        _rubixir_ = [2]
+        raise Rubixir::MatchError.new(_rubixir_) unless 1 == _rubixir_[0]
+        _rubixir_
         """
       end
 
@@ -296,10 +296,10 @@ defmodule Rubixer.MacrosTest do
       it "tuple" do
         result = to_ruby_string(tuple_assignment)
         expect result |> to_eq """
-        _rubixer_ = [1, 2]
-        a = _rubixer_[0]
-        b = _rubixer_[1]
-        _rubixer_
+        _rubixir_ = [1, 2]
+        a = _rubixir_[0]
+        b = _rubixir_[1]
+        _rubixir_
         """
       end
 
@@ -307,11 +307,11 @@ defmodule Rubixer.MacrosTest do
       it "tuple multi" do
         result = to_ruby_string(tuple_multi_assignment)
         expect result |> to_eq """
-        _rubixer_ = [1, 2, 3]
-        a = _rubixer_[0]
-        b = _rubixer_[1]
-        c = _rubixer_[2]
-        _rubixer_
+        _rubixir_ = [1, 2, 3]
+        a = _rubixir_[0]
+        b = _rubixir_[1]
+        c = _rubixir_[2]
+        _rubixir_
         """
       end
 
@@ -319,9 +319,9 @@ defmodule Rubixer.MacrosTest do
       # it "map" do
       #   result = to_ruby_string(map_assignment)
       #   expect result |> to_eq """
-      #   _rubixer_hash_ = %{key: :value}
-      #   raise Rubixer::MatchError.new(_rubixer_hash_) unless _rubixer_hash_.has_key?(:key)
-      #   value = _rubixer_hash_[:key]
+      #   _rubixir_hash_ = %{key: :value}
+      #   raise Rubixir::MatchError.new(_rubixir_hash_) unless _rubixir_hash_.has_key?(:key)
+      #   value = _rubixir_hash_[:key]
       #   """
       # end
     end
