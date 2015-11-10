@@ -1,6 +1,7 @@
 defmodule Rubixir.MacrosTest do
   use Pavlov.Case, async: true
   import Pavlov.Syntax.Expect
+  import Support.Helpers
   import Rubixir.Macros
   doctest Rubixir.Macros
 
@@ -97,7 +98,7 @@ defmodule Rubixir.MacrosTest do
       let :if_statement, do: quote(do: if(true, do: :yes))
       it "if statement" do
         result = to_ruby_string(if_statement)
-        expect result |> to_eq """
+        expect_to_match result, """
         if true
           :yes
         end
@@ -107,7 +108,7 @@ defmodule Rubixir.MacrosTest do
       let :if_else_statement, do: quote(do: if(true, [do: :yes, else: :no]))
       it "if else statement" do
         result = to_ruby_string(if_else_statement)
-        expect result |> to_eq """
+        expect_to_match result, """
         if true
           :yes
         else
@@ -119,7 +120,7 @@ defmodule Rubixir.MacrosTest do
       let :unless_statement, do: quote(do: unless(true, do: :yes))
       it "unless statement" do
         result = to_ruby_string(unless_statement)
-        expect result |> to_eq """
+        expect_to_match result, """
         unless true
           :yes
         end
@@ -129,7 +130,7 @@ defmodule Rubixir.MacrosTest do
       let :unless_else_statement, do: quote(do: unless(true, [do: :yes, else: :no]))
       it "unless else statement" do
         result = to_ruby_string(unless_else_statement)
-        expect result |> to_eq """
+        expect_to_match result, """
         unless true
           :yes
         else
@@ -147,7 +148,7 @@ defmodule Rubixir.MacrosTest do
       end
       it "single cond statement" do
         result = to_ruby_string(single_cond)
-        expect result |> to_eq """
+        expect_to_match result, """
         if 1
           :yes
         end
@@ -165,7 +166,7 @@ defmodule Rubixir.MacrosTest do
       end
       it "cond statement" do
         result = to_ruby_string(cond_statement)
-        expect result |> to_eq """
+        expect_to_match result, """
         if 1
           :yes
         elsif "string"
@@ -231,9 +232,10 @@ defmodule Rubixir.MacrosTest do
       let :simple_assignment, do: quote(do: a = 5)
       it "simple" do
         result = to_ruby_string(simple_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = 5
-        a = _rubixir_
+        a = _rubixir_ rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
         _rubixir_
         """
       end
@@ -241,9 +243,9 @@ defmodule Rubixir.MacrosTest do
       let :hard_assignment, do: quote(do: 1 = 2)
       it "hard" do
         result = to_ruby_string(hard_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = 2
-        raise Rubixir::MatchError.new(_rubixir_) unless 1 == _rubixir_
+        raise Rubixir::MatchError.new(_rubixir_) unless (1 == _rubixir_ rescue false)
         _rubixir_
         """
       end
@@ -251,10 +253,12 @@ defmodule Rubixir.MacrosTest do
       let :list_assignment, do: quote(do: [a | b] = [1,2])
       it "list" do
         result = to_ruby_string(list_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [1, 2]
-        a = _rubixir_[0]
-        b = _rubixir_[1..-1]
+        a = _rubixir_[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
+        b = _rubixir_[1..-1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if b == :_rubixir_nil_
         _rubixir_
         """
       end
@@ -262,10 +266,12 @@ defmodule Rubixir.MacrosTest do
       let :list_multi_assignment, do: quote(do: [a, b] = [1,2])
       it "list multi" do
         result = to_ruby_string(list_multi_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [1, 2]
-        a = _rubixir_[0]
-        b = _rubixir_[1]
+        a = _rubixir_[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
+        b = _rubixir_[1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if b == :_rubixir_nil_
         _rubixir_
         """
       end
@@ -273,11 +279,29 @@ defmodule Rubixir.MacrosTest do
       let :list_multi_splat_assignment, do: quote(do: [a, b | c] = [1,2,3])
       it "list multi splat" do
         result = to_ruby_string(list_multi_splat_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [1, 2, 3]
-        a = _rubixir_[0]
-        b = _rubixir_[1]
-        c = _rubixir_[2..-1]
+        a = _rubixir_[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
+        b = _rubixir_[1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if b == :_rubixir_nil_
+        c = _rubixir_[2..-1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if c == :_rubixir_nil_
+        _rubixir_
+        """
+      end
+
+      let :keyword_assignment, do: quote(do: [{:key, value}, {dynamic, :hard}] = [key: :value, dynamic: :hard])
+      it "keyword" do
+        result = to_ruby_string(keyword_assignment)
+        expect_to_match result, """
+        _rubixir_ = {:key => :value, :dynamic => :hard}
+        value = _rubixir_[:key] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if value == :_rubixir_nil_
+        dynamic = _rubixir_.find{|k,v|v==:hard}[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if dynamic == :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) unless (:key == _rubixir_.find{|k,v|v==value}[0] rescue false)
+        raise Rubixir::MatchError.new(_rubixir_) unless (:hard == _rubixir_[dynamic] rescue false)
         _rubixir_
         """
       end
@@ -285,9 +309,9 @@ defmodule Rubixir.MacrosTest do
       let :hard_list_assignment, do: quote(do: [1] = [2])
       it "hard list" do
         result = to_ruby_string(hard_list_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [2]
-        raise Rubixir::MatchError.new(_rubixir_) unless 1 == _rubixir_[0]
+        raise Rubixir::MatchError.new(_rubixir_) unless (1 == _rubixir_[0] rescue false)
         _rubixir_
         """
       end
@@ -295,10 +319,12 @@ defmodule Rubixir.MacrosTest do
       let :tuple_assignment, do: quote(do: {a, b} = {1, 2})
       it "tuple" do
         result = to_ruby_string(tuple_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [1, 2]
-        a = _rubixir_[0]
-        b = _rubixir_[1]
+        a = _rubixir_[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
+        b = _rubixir_[1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if b == :_rubixir_nil_
         _rubixir_
         """
       end
@@ -306,24 +332,29 @@ defmodule Rubixir.MacrosTest do
       let :tuple_multi_assignment, do: quote(do: {a, b, c} = {1, 2, 3})
       it "tuple multi" do
         result = to_ruby_string(tuple_multi_assignment)
-        expect result |> to_eq """
+        expect_to_match result, """
         _rubixir_ = [1, 2, 3]
-        a = _rubixir_[0]
-        b = _rubixir_[1]
-        c = _rubixir_[2]
+        a = _rubixir_[0] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if a == :_rubixir_nil_
+        b = _rubixir_[1] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if b == :_rubixir_nil_
+        c = _rubixir_[2] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if c == :_rubixir_nil_
         _rubixir_
         """
       end
 
-      # let :map_assignment, do: quote(do: %{key: value} = %{key: :value})
-      # it "map" do
-      #   result = to_ruby_string(map_assignment)
-      #   expect result |> to_eq """
-      #   _rubixir_hash_ = %{key: :value}
-      #   raise Rubixir::MatchError.new(_rubixir_hash_) unless _rubixir_hash_.has_key?(:key)
-      #   value = _rubixir_hash_[:key]
-      #   """
-      # end
+      let :map_assignment, do: quote(do: %{key: value} = %{key: :value})
+      it "map" do
+        result = to_ruby_string(map_assignment)
+        expect_to_match result, """
+        _rubixir_ = {:key => :value}
+        value = _rubixir_[:key] rescue :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) if value == :_rubixir_nil_
+        raise Rubixir::MatchError.new(_rubixir_) unless (:key == _rubixir_.find{|k,v|v==value}[0] rescue false)
+        _rubixir_
+        """
+      end
     end
 
   end

@@ -39,21 +39,22 @@ defmodule Rubixir.Macros do
   ### Assignment ###
   def to_ruby_string({:=, _, [lhs, rhs]}) do
     {matches, variables} = pattern(lhs, path: "", matches: [], vars: [])
-    # IO.inspect matches
-    # IO.inspect variables
     matches = matches
               |> Enum.reverse
               |> Enum.map(fn({:match, data, path})->
-                "raise Rubixir::MatchError.new(_rubixir_) unless #{to_ruby_string(data)} == _rubixir_#{path}\n"
+                "raise Rubixir::MatchError.new(_rubixir_) unless (#{match_error(data, path)} rescue false)\n"
               end)
     variables = variables
                 |> Enum.reverse
                 |> Enum.map(fn({:path_var, path, var})->
-                  "#{var} = _rubixir_#{path}\n"
+                  """
+                  #{var} = _rubixir_#{path} rescue :_rubixir_nil_
+                  raise Rubixir::MatchError.new(_rubixir_) if #{var} == :_rubixir_nil_
+                  """
                 end)
     """
     _rubixir_ = #{to_ruby_string(rhs)}
-    #{matches}#{variables}_rubixir_
+    #{variables}#{matches}_rubixir_
     """
   end
 
@@ -69,7 +70,7 @@ defmodule Rubixir.Macros do
     Enum.into(keyword, %{})
     |> to_ruby_string
   end
-  def to_ruby_string([:%{}, _, m]), do: to_ruby_hash(m)
+  def to_ruby_string({:%{}, _, m}), do: to_ruby_hash(m)
   def to_ruby_string(m) when is_map(m), do: to_ruby_hash(m)
   def to_ruby_string({:{}, _, elements}), do: to_ruby_string(elements)
   def to_ruby_string(t) when is_tuple(t), do: to_ruby_string(Tuple.to_list(t))
@@ -106,7 +107,14 @@ defmodule Rubixir.Macros do
   end
   defp else_statement([]), do: ""
 
-  defp pattern({var, a, b}, [path: path, matches: matches, vars: vars]) when is_atom(var) and is_list(a) and is_atom(b) do
+
+  defp raw_pattern({atom, [], _}), do: to_string(atom)
+  defp raw_pattern(atom) when is_atom(atom), do: inspect(atom)
+
+  defp pattern({:%{}, _, keyword}, path: path, matches: matches, vars: vars) do
+    pattern(keyword, path: path, matches: matches, vars: vars)
+  end
+  defp pattern({var, a, b}, path: path, matches: matches, vars: vars) when is_atom(var) and is_list(a) and is_atom(b) do
     {matches, [{:path_var, path, to_string(var)} | vars]}
   end
   defp pattern([{:|, _, [first, tail]}], path: path, matches: matches, vars: vars, index: index) do
@@ -116,6 +124,11 @@ defmodule Rubixir.Macros do
   defp pattern([{:|, _, [first, tail]}], path: path, matches: matches, vars: vars) do
     {matches, vars} = pattern(first, path: "#{path}[0]", matches: matches, vars: vars)
     pattern(tail, path: "#{path}[1..-1]", matches: matches, vars: vars)
+  end
+  defp pattern([{key, value} | rest], path: path, matches: matches, vars: vars) do
+    {matches, vars} = pattern(key, path: "#{path}.find{|k,v|v==#{raw_pattern(value)}}[0]", matches: matches, vars: vars)
+    {matches, vars} = pattern(value, path: "#{path}[#{raw_pattern(key)}]", matches: matches, vars: vars)
+    pattern(rest, path: path, matches: matches, vars: vars)
   end
   defp pattern([var | rest], path: path, matches: matches, vars: vars) when length(rest) > 0 do
     pattern([var | rest], path: path, matches: matches, vars: vars, index: 0)
@@ -139,17 +152,15 @@ defmodule Rubixir.Macros do
     Tuple.to_list(tuple)
     |> pattern(path: path, matches: matches, vars: vars)
   end
+  defp pattern([], path: path, matches: matches, vars: vars) do
+    {matches, vars}
+  end
   defp pattern(anything, path: path, matches: matches, vars: vars) do
     {[{:match, anything, path} | matches], vars}
   end
 
-  # defp raise_match_error_statement(lhs) when is_list(lhs) do
-  #   Enum.map(lhs, &(match_error(&1, []))
-  #   |> Enum.drop_while(&(!&1))
-  #   |> Enum.join("\n")
-  # end
-  # defp raise_match_error_statement(lhs) do
-  #   "raise Rubixir::MatchError.new(_rubixir_) unless #{to_ruby_string(lhs)} == _rubixir_"
-  # end
+  def match_error(data, path) do
+    "#{to_ruby_string(data)} == _rubixir_#{path}"
+  end
 
 end
