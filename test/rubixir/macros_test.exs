@@ -313,6 +313,22 @@ defmodule Rubixir.MacrosTest do
         """
       end
 
+      let :define_namespaced do
+        quote do
+          defmodule Namespaced.RubyModule do
+          end
+        end
+      end
+      it "defines namespaced" do
+        result = to_ruby_string(define_namespaced)
+        expect_to_match result, """
+        module Namespaced::RubyModule
+          extend self
+
+        end
+        """
+      end
+
       let :define_module_with_body do
         quote do
           defmodule RubyModule do
@@ -326,6 +342,28 @@ defmodule Rubixir.MacrosTest do
         module RubyModule
           extend self
           puts("Hi!")
+        end
+        """
+      end
+
+      let :define_nested do
+        quote do
+          defmodule Namespaced do
+            defmodule Nested do
+            end
+          end
+        end
+      end
+      it "defines nested" do
+        result = to_ruby_string(define_nested)
+        expect_to_match result, """
+        module Namespaced
+          extend self
+          module Nested
+            extend self
+
+          end
+
         end
         """
       end

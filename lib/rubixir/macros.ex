@@ -52,11 +52,18 @@ defmodule Rubixir.Macros do
     "#{module}"
   end
   def to_ruby_string({:defmodule, _, [module, [do: block]]}) do
-    body = if block, do: to_ruby_string(block), else: ""
+    body = if block do
+      to_ruby_string(block)
+      |> String.split("\n")
+      |> Enum.map(&(String.rstrip("  #{&1}")))
+      |> Enum.join("\n")
+    else
+      ""
+    end
     """
-    module #{to_ruby_string(module)}
+    module #{to_ruby_namespace(module)}
       extend self
-      #{body}
+    #{body}
     end
     """
   end
@@ -196,6 +203,10 @@ defmodule Rubixir.Macros do
 
   def params_to_ruby_string(params) do
     Enum.map(params, &to_ruby_string/1) |> Enum.join(", ")
+  end
+
+  def to_ruby_namespace({:__aliases__, _, modules}) do
+    Enum.map(modules, &to_string/1) |> Enum.join("::")
   end
 
 end
