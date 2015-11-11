@@ -168,7 +168,7 @@ defmodule Rubixir.MacrosTest do
       let :bang, do: quote(do: !true)
       it "bang" do
         result = to_ruby_string(bang)
-        expect result |> to_eq "!true" 
+        expect result |> to_eq "!true"
       end
     end
 
@@ -502,6 +502,12 @@ defmodule Rubixir.MacrosTest do
       it "local function" do
         result = to_ruby_string(local_function)
         expect result |> to_eq "some_fun([], {:key => :value})"
+      end
+
+      let :bracket_syntax, do: quote(do: something[:data])
+      it "hash access" do
+        result = to_ruby_string(bracket_syntax)
+        expect result |> to_eq "something[:data]"
       end
 
     end

@@ -52,6 +52,9 @@ defmodule Rubixir.Macros do
   end
 
   ### Methods ###
+  def to_ruby_string({{:., [], [Access, :get]}, _, [variable, key]}) do
+    "#{raw_pattern(variable)}[#{to_ruby_string(key)}]" 
+  end
   def to_ruby_string({{:., [], [module, method]}, _, params}) do
     "#{to_ruby_string(module)}.#{method}(#{params_to_ruby_string(params)})"
   end
