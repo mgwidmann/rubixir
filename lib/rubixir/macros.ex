@@ -51,6 +51,15 @@ defmodule Rubixir.Macros do
   def to_ruby_string({:__aliases__, _, [module]}) do
     "#{module}"
   end
+  def to_ruby_string({:defmodule, _, [module, [do: block]]}) do
+    body = if block, do: to_ruby_string(block), else: ""
+    """
+    module #{to_ruby_string(module)}
+      extend self
+      #{body}
+    end
+    """
+  end
 
   ### Assignment ###
   def to_ruby_string({:=, _, [lhs, rhs]}) do

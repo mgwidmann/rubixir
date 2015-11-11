@@ -296,6 +296,39 @@ defmodule Rubixir.MacrosTest do
         result = to_ruby_string(module)
         expect result |> to_eq("SomeModule")
       end
+
+      let :define_module do
+        quote do
+          defmodule RubyModule do
+          end
+        end
+      end
+      it "defines" do
+        result = to_ruby_string(define_module)
+        expect_to_match result, """
+        module RubyModule
+          extend self
+
+        end
+        """
+      end
+
+      let :define_module_with_body do
+        quote do
+          defmodule RubyModule do
+            puts "Hi!"
+          end
+        end
+      end
+      it "defines with body" do
+        result = to_ruby_string(define_module_with_body)
+        expect_to_match result, """
+        module RubyModule
+          extend self
+          puts("Hi!")
+        end
+        """
+      end
     end
 
     context "methods" do
