@@ -127,6 +127,45 @@ defmodule Rubixir.MacrosTest do
       end
     end
 
+    context "mathematical operators" do
+
+      let :plus, do: quote(do: 1 + 1)
+      it "adds" do
+        result = to_ruby_string(plus)
+        expect result |> to_eq "1 + 1"
+      end
+
+      let :subtract, do: quote(do: 1 - 1)
+      it "subtract" do
+        result = to_ruby_string(subtract)
+        expect result |> to_eq "1 - 1"
+      end
+
+      let :multiply, do: quote(do: 1 * 1)
+      it "multiply" do
+        result = to_ruby_string(multiply)
+        expect result |> to_eq "1 * 1"
+      end
+
+      let :divide, do: quote(do: 1 / 1)
+      it "divide" do
+        result = to_ruby_string(divide)
+        expect result |> to_eq "1 / 1"
+      end
+
+      let :int_divide, do: quote(do: div(1, 1))
+      it "integer divide" do
+        result = to_ruby_string(int_divide)
+        expect result |> to_eq "(1).to_i / (1).to_i"
+      end
+
+      let :modulus, do: quote(do: rem(1, 1))
+      it "modulus" do
+        result = to_ruby_string(modulus)
+        expect result |> to_eq "1 % 1"
+      end
+    end
+
     context "conditionals" do
 
       let :if_statement, do: quote(do: if(true, do: :yes))

@@ -30,16 +30,22 @@ defmodule Rubixir.Macros do
     #{elsif_statements(statements_and_results)}end
     """
   end
-  for binary_operator <- [:==, :>, :<, :>=, :<=, :&&, :||] do
+  for binary_operator <- [:==, :>, :<, :>=, :<=, :&&, :||, :+, :-, :*, :/] do
     def to_ruby_string({unquote(binary_operator), _, [lhs, rhs]}) do
       "#{to_ruby_string(lhs)} #{unquote(binary_operator)} #{to_ruby_string(rhs)}"
     end
   end
   def to_ruby_string({:and, _, [lhs, rhs]}) do
-     "#{to_ruby_string(lhs)} & #{to_ruby_string(rhs)}"
+    "#{to_ruby_string(lhs)} & #{to_ruby_string(rhs)}"
   end
   def to_ruby_string({:or, _, [lhs, rhs]}) do
-     "#{to_ruby_string(lhs)} | #{to_ruby_string(rhs)}"
+    "#{to_ruby_string(lhs)} | #{to_ruby_string(rhs)}"
+  end
+  def to_ruby_string({:rem, _, [lhs, rhs]}) do
+    "#{to_ruby_string(lhs)} % #{to_ruby_string(rhs)}"
+  end
+  def to_ruby_string({:div, _, [lhs, rhs]}) do
+    "(#{to_ruby_string(lhs)}).to_i / (#{to_ruby_string(rhs)}).to_i"
   end
 
   ### Methods ###
