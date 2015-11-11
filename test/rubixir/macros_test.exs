@@ -164,6 +164,12 @@ defmodule Rubixir.MacrosTest do
         result = to_ruby_string(modulus)
         expect result |> to_eq "1 % 1"
       end
+
+      let :bang, do: quote(do: !true)
+      it "bang" do
+        result = to_ruby_string(bang)
+        expect result |> to_eq "!true" 
+      end
     end
 
     context "conditionals" do

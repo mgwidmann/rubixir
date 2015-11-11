@@ -47,6 +47,9 @@ defmodule Rubixir.Macros do
   def to_ruby_string({:div, _, [lhs, rhs]}) do
     "(#{to_ruby_string(lhs)}).to_i / (#{to_ruby_string(rhs)}).to_i"
   end
+  def to_ruby_string({:!, _, [banged]}) do
+    "!#{to_ruby_string(banged)}"
+  end
 
   ### Methods ###
   def to_ruby_string({{:., [], [module, method]}, _, params}) do
