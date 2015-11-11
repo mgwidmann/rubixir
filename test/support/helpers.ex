@@ -2,8 +2,8 @@ defmodule Support.Helpers do
   import ExUnit.Assertions
 
   def expect_to_match(result, expected) do
-    result = result |> String.split("\n")
-    expected = expected |> String.split("\n")
+    result = result |> String.strip |> String.split("\n")
+    expected = expected |> String.strip |> String.split("\n")
     assert result == expected
   end
 

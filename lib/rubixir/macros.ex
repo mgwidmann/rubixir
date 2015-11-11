@@ -10,6 +10,11 @@ defmodule Rubixir.Macros do
     end
   end
 
+  ### Blocks of code ###
+  def to_ruby_string({:__block__, _, lines}) do
+    Enum.map(lines, &to_ruby_string/1) |> Enum.join("\n")
+  end
+
   ### Conditionals ###
   def to_ruby_string({if_unless, _, [statement, [{:do, result} | else_block]]}) when if_unless in [:if, :unless] do
      """
@@ -81,6 +86,8 @@ defmodule Rubixir.Macros do
     Enum.into(keyword, %{})
     |> to_ruby_string
   end
+  def to_ruby_string({:::, _, [int, _]}), do: to_ruby_string(int)
+  def to_ruby_string({:<<>>, _, b}), do: to_ruby_string(b)
   def to_ruby_string({:%{}, _, m}), do: to_ruby_hash(m)
   def to_ruby_string(m) when is_map(m), do: to_ruby_hash(m)
   def to_ruby_string({:{}, _, elements}), do: to_ruby_string(elements)

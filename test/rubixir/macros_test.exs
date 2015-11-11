@@ -7,6 +7,22 @@ defmodule Rubixir.MacrosTest do
 
   describe "#ruby" do
 
+    let :block do
+      quote do
+        true
+        1
+        nil
+      end
+    end
+    it "blocks" do
+       result = to_ruby_string(block)
+       expect_to_match result, """
+       true
+       1
+       nil
+       """
+    end
+
     context "primitives" do
       let :truthy, do: quote(do: true)
       it "true" do
@@ -90,6 +106,18 @@ defmodule Rubixir.MacrosTest do
       it "property list" do
          result = to_ruby_string(property)
          expect result |> to_eq ~s({"key" => :value})
+      end
+
+      let :binary, do: quote(do: <<123, 123>>)
+      it "binary" do
+        result = to_ruby_string(binary)
+        expect result |> to_eq "[123, 123]"
+      end
+
+      let :binary_with_size, do: quote(do: <<350::size(12), 350::size(12)>>)
+      it "binary with size" do
+        result = to_ruby_string(binary_with_size)
+        expect result |> to_eq "[350, 350]"
       end
     end
 
