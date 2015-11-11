@@ -119,6 +119,12 @@ defmodule Rubixir.MacrosTest do
         result = to_ruby_string(binary_with_size)
         expect result |> to_eq "[350, 350]"
       end
+
+      let :local_variable, do: quote(do: some_var)
+      it "local variable" do
+        result = to_ruby_string(local_variable)
+        expect result |> to_eq "some_var"
+      end
     end
 
     context "conditionals" do
@@ -364,6 +370,34 @@ defmodule Rubixir.MacrosTest do
 
           end
 
+        end
+        """
+      end
+
+      let :def_method do
+        quote do
+          def foo(), do: nil
+        end
+      end
+      it "defines a method" do
+        result = to_ruby_string(def_method)
+        expect_to_match result, """
+        def foo()
+          nil
+        end
+        """
+      end
+
+      let :def_method_with_args do
+        quote do
+          def foo(a, b, c), do: nil
+        end
+      end
+      it "defines a method with args" do
+        result = to_ruby_string(def_method_with_args)
+        expect_to_match result, """
+        def foo(a, b, c)
+          nil
         end
         """
       end

@@ -67,6 +67,13 @@ defmodule Rubixir.Macros do
     end
     """
   end
+  def to_ruby_string({:def, _, [method, [do: block]]}) do
+    """
+    def #{to_ruby_string(method)}
+      #{to_ruby_string(block)}
+    end
+    """
+  end
 
   ### Assignment ###
   def to_ruby_string({:=, _, [lhs, rhs]}) do
@@ -108,8 +115,12 @@ defmodule Rubixir.Macros do
   def to_ruby_string(m) when is_map(m), do: to_ruby_hash(m)
   def to_ruby_string({:{}, _, elements}), do: to_ruby_string(elements)
   # Local function call
-  def to_ruby_string({method, [], params}) do
+  def to_ruby_string({method, _, params}) when is_list(params) do
     "#{method}(#{params_to_ruby_string(params)})"
+  end
+  # Local variable
+  def to_ruby_string({method, _, module}) when is_atom(module) do
+    "#{method}"
   end
   def to_ruby_string(t) when is_tuple(t), do: to_ruby_string(Tuple.to_list(t))
   def to_ruby_string(c) when is_list(c) do
@@ -148,6 +159,8 @@ defmodule Rubixir.Macros do
 
   defp raw_pattern({atom, [], _}), do: to_string(atom)
   defp raw_pattern(atom) when is_atom(atom), do: inspect(atom)
+  defp raw_pattern({:__aliases__, _, [module]}), do: to_string(module)
+  defp raw_pattern(anything), do: to_ruby_string(anything)
 
   defp pattern({:%{}, _, keyword}, path: path, matches: matches, vars: vars) do
     pattern(keyword, path: path, matches: matches, vars: vars)
@@ -202,7 +215,7 @@ defmodule Rubixir.Macros do
   end
 
   def params_to_ruby_string(params) do
-    Enum.map(params, &to_ruby_string/1) |> Enum.join(", ")
+    Enum.map(params, &raw_pattern/1) |> Enum.join(", ")
   end
 
   def to_ruby_namespace({:__aliases__, _, modules}) do
