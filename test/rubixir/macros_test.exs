@@ -177,11 +177,94 @@ defmodule Rubixir.MacrosTest do
         """
       end
 
+      let :equals, do: quote(do: 1 == 1)
+      it "equals" do
+        result = to_ruby_string(equals)
+        expect result |> to_eq "1 == 1"
+      end
+
+      let :equals_complex, do: quote(do: [%{key: :value}] == SomeModule.fun_call(:data))
+      it "equals complex" do
+        result = to_ruby_string(equals_complex)
+        expect result |> to_eq "[{:key => :value}] == SomeModule.fun_call(:data)"
+      end
+
+      let :greater, do: quote(do: 1 > 1)
+      it "greater" do
+        result = to_ruby_string(greater)
+        expect result |> to_eq "1 > 1"
+      end
+
+      let :greater_complex, do: quote(do: [%{key: :value}] > SomeModule.fun_call(:data))
+      it "greater complex" do
+        result = to_ruby_string(greater_complex)
+        expect result |> to_eq "[{:key => :value}] > SomeModule.fun_call(:data)"
+      end
+
+      let :less_than, do: quote(do: 1 < 1)
+      it "less than" do
+        result = to_ruby_string(less_than)
+        expect result |> to_eq "1 < 1"
+      end
+
+      let :less_than_complex, do: quote(do: [%{key: :value}] < SomeModule.fun_call(:data))
+      it "less than complex" do
+        result = to_ruby_string(less_than_complex)
+        expect result |> to_eq "[{:key => :value}] < SomeModule.fun_call(:data)"
+      end
+
+      let :greater_or_equal, do: quote(do: 1 >= 1)
+      it "greater or equal" do
+        result = to_ruby_string(greater_or_equal)
+        expect result |> to_eq "1 >= 1"
+      end
+
+      let :greater_or_equal_complex, do: quote(do: [%{key: :value}] >= SomeModule.fun_call(:data))
+      it "greater or equal complex" do
+        result = to_ruby_string(greater_or_equal_complex)
+        expect result |> to_eq "[{:key => :value}] >= SomeModule.fun_call(:data)"
+      end
+
+      let :less_than_or_equal, do: quote(do: 1 <= 1)
+      it "less than or equal" do
+        result = to_ruby_string(less_than_or_equal)
+        expect result |> to_eq "1 <= 1"
+      end
+
+      let :less_than_or_equal_complex, do: quote(do: [%{key: :value}] <= SomeModule.fun_call(:data))
+      it "less than or equal complex" do
+        result = to_ruby_string(less_than_or_equal_complex)
+        expect result |> to_eq "[{:key => :value}] <= SomeModule.fun_call(:data)"
+      end
+
+      let :and_operator, do: quote(do: true && false)
+      it "and" do
+        result = to_ruby_string(and_operator)
+        expect result |> to_eq "true && false"
+      end
+
+      let :single_and_operator, do: quote(do: true and false)
+      it "single and" do
+        result = to_ruby_string(single_and_operator)
+        expect result |> to_eq "true & false"
+      end
+
+      let :or_operator, do: quote(do: true || false)
+      it "or" do
+        result = to_ruby_string(or_operator)
+        expect result |> to_eq "true || false"
+      end
+
+      let :single_or_operator, do: quote(do: true or false)
+      it "single or" do
+        result = to_ruby_string(single_or_operator)
+        expect result |> to_eq "true | false"
+      end
     end
 
     context "module" do
       let :module, do: quote(do: SomeModule)
-      it "..." do
+      it "reference" do
         result = to_ruby_string(module)
         expect result |> to_eq("SomeModule")
       end
@@ -223,6 +306,24 @@ defmodule Rubixir.MacrosTest do
       it "class with method call with params" do
          result = to_ruby_string(class_method_with_method_call_with_params)
          expect result |> to_eq "Object.new(true).to_s(123)"
+      end
+
+      let :local_function, do: quote(do: some_fun())
+      it "local function" do
+        result = to_ruby_string(local_function)
+        expect result |> to_eq "some_fun()"
+      end
+
+      let :local_function_with_params, do: quote(do: some_fun(1, 2))
+      it "local function" do
+        result = to_ruby_string(local_function)
+        expect result |> to_eq "some_fun(1, 2)"
+      end
+
+      let :local_function_complex_params, do: quote(do: some_fun([], key: :value))
+      it "local function" do
+        result = to_ruby_string(local_function)
+        expect result |> to_eq "some_fun([], {:key => :value})"
       end
 
     end

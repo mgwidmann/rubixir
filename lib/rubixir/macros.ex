@@ -25,10 +25,21 @@ defmodule Rubixir.Macros do
     #{elsif_statements(statements_and_results)}end
     """
   end
+  for binary_operator <- [:==, :>, :<, :>=, :<=, :&&, :||] do
+    def to_ruby_string({unquote(binary_operator), _, [lhs, rhs]}) do
+      "#{to_ruby_string(lhs)} #{unquote(binary_operator)} #{to_ruby_string(rhs)}"
+    end
+  end
+  def to_ruby_string({:and, _, [lhs, rhs]}) do
+     "#{to_ruby_string(lhs)} & #{to_ruby_string(rhs)}"
+  end
+  def to_ruby_string({:or, _, [lhs, rhs]}) do
+     "#{to_ruby_string(lhs)} | #{to_ruby_string(rhs)}"
+  end
 
   ### Methods ###
   def to_ruby_string({{:., [], [module, method]}, _, params}) do
-     "#{to_ruby_string(module)}.#{method}(#{Enum.map(params, &to_ruby_string/1) |> Enum.join(", ")})"
+    "#{to_ruby_string(module)}.#{method}(#{params_to_ruby_string(params)})"
   end
 
   ### Modules ###
@@ -73,6 +84,10 @@ defmodule Rubixir.Macros do
   def to_ruby_string({:%{}, _, m}), do: to_ruby_hash(m)
   def to_ruby_string(m) when is_map(m), do: to_ruby_hash(m)
   def to_ruby_string({:{}, _, elements}), do: to_ruby_string(elements)
+  # Local function call
+  def to_ruby_string({method, [], params}) do
+    "#{method}(#{params_to_ruby_string(params)})"
+  end
   def to_ruby_string(t) when is_tuple(t), do: to_ruby_string(Tuple.to_list(t))
   def to_ruby_string(c) when is_list(c) do
     "[#{Enum.map(c, &to_ruby_string/1) |> Enum.join(", ")}]"
@@ -161,6 +176,10 @@ defmodule Rubixir.Macros do
 
   def match_error(data, path) do
     "#{to_ruby_string(data)} == _rubixir_#{path}"
+  end
+
+  def params_to_ruby_string(params) do
+    Enum.map(params, &to_ruby_string/1) |> Enum.join(", ")
   end
 
 end
