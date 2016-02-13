@@ -53,7 +53,7 @@ defmodule Rubixir.Macros do
 
   ### Methods ###
   def to_ruby_string({{:., [], [Access, :get]}, _, [variable, key]}) do
-    "#{raw_pattern(variable)}[#{to_ruby_string(key)}]" 
+    "#{raw_pattern(variable)}[#{to_ruby_string(key)}]"
   end
   def to_ruby_string({{:., [], [module, method]}, _, params}) do
     "#{to_ruby_string(module)}.#{method}(#{params_to_ruby_string(params)})"
@@ -113,11 +113,11 @@ defmodule Rubixir.Macros do
   def to_ruby_string(i) when is_number(i), do: inspect(i)
   def to_ruby_string(s) when is_binary(s), do: inspect(s)
   def to_ruby_string(a) when is_atom(a), do: inspect(a)
-  def to_ruby_string([{atom, v} | _rest] = keyword) when is_atom(atom) do
+  def to_ruby_string([{atom, _v} | _rest] = keyword) when is_atom(atom) do
     Enum.into(keyword, %{})
     |> to_ruby_string
   end
-  def to_ruby_string([{string, v} | _rest] = keyword) when is_binary(string) do
+  def to_ruby_string([{string, _v} | _rest] = keyword) when is_binary(string) do
     Enum.into(keyword, %{})
     |> to_ruby_string
   end
@@ -215,7 +215,7 @@ defmodule Rubixir.Macros do
     Tuple.to_list(tuple)
     |> pattern(path: path, matches: matches, vars: vars)
   end
-  defp pattern([], path: path, matches: matches, vars: vars) do
+  defp pattern([], path: _path, matches: matches, vars: vars) do
     {matches, vars}
   end
   defp pattern(anything, path: path, matches: matches, vars: vars) do

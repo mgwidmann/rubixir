@@ -9,20 +9,20 @@ defmodule RubixirTest do
       let :worker, do: Rubixir.new
 
       it "basic ruby" do
-        expect Rubixir.run_sync(worker, "a = 1") |> to_eq "1"
+        expect(Rubixir.run_sync(worker, "a = 1")) |> to_eq("1")
       end
 
       it "retains variables" do
         Rubixir.run_sync(worker, "a = 1")
-        expect Rubixir.run_sync(worker, "a += 1") |> to_eq "2"
+        expect(Rubixir.run_sync(worker, "a += 1")) |> to_eq("2")
       end
     end
 
     context "with requires" do
-      let :worker, do: Rubixir.new require: [:"active_support/core_ext"]
+      let :worker, do: Rubixir.new require: [:"active_support", :"active_support/core_ext"]
 
       it "loads the code" do
-        expect Rubixir.run_sync(worker, "1.respond_to?(:present?)") |> to_eq "true"
+        expect(Rubixir.run_sync(worker, "1.respond_to?(:present?)")) |> to_eq("true")
       end
     end
   end
@@ -40,7 +40,7 @@ defmodule RubixirTest do
       end
 
       it "runs sync" do
-        expect Rubixir.run_sync(worker, "1") |> to_eq "1"
+        expect(Rubixir.run_sync(worker, "1")) |> to_eq("1")
       end
 
     end
@@ -48,11 +48,11 @@ defmodule RubixirTest do
     context "requires" do
 
       it "after startup" do
-        expect Rubixir.run_sync(worker, "require('active_support/core_ext')") |> to_eq "true"
+        expect(Rubixir.run_sync(worker, "require('active_support') && require('active_support/core_ext')")) |> to_eq("true")
       end
 
       it "code is available" do
-        expect Rubixir.run_sync(worker, "require('active_support/core_ext') && 1.respond_to?(:present?)") |> to_eq "true"
+        expect(Rubixir.run_sync(worker, "require('active_support') && require('active_support/core_ext') && 1.respond_to?(:present?)")) |> to_eq("true")
       end
 
     end

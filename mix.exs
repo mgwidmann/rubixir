@@ -34,7 +34,7 @@ defmodule Rubixir.Mixfile do
   defp deps do
     [
       {:porcelain, "~> 2.0"},
-      {:pavlov, "~> 0.2.3", only: [:test]}
+      {:pavlov, github: "sproutapp/pavlov", only: [:test]}
     ]
   end
 end
