@@ -4,7 +4,9 @@ defmodule Rubixir.Worker do
   alias Rubixir.Worker.Job
   require Logger
 
-  @ruby_loop ~S"""
+  @rubixir_file Application.get_env(:rubixir, :rubixir_file)
+  @ruby_loop """
+    #{if @rubixir_file, do: "Module.new.module_eval(File.read(#{inspect Path.join(@rubixir_file, "Rubixir")}))", else: nil}
     STDOUT.sync = true
     context = binding
 
@@ -16,8 +18,8 @@ defmodule Rubixir.Worker do
   @pool_config [
     name: {:local, __MODULE__},
     worker_module: __MODULE__,
-    size: Application.get_env(:rubixir, __MODULE__)[:size],
-    max_overflow: Application.get_env(:rubixir, __MODULE__)[:max_overflow]
+    size: Application.get_env(:rubixir, __MODULE__)[:size] || 1,
+    max_overflow: Application.get_env(:rubixir, __MODULE__)[:max_overflow] || 0
   ]
 
   def pool_name(), do: __MODULE__

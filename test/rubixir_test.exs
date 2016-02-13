@@ -53,6 +53,10 @@ defmodule RubixirTest do
         expect(Rubixir.run_sync(Rubixir.new, "require('active_support')\nrequire('active_support/core_ext')\n1.respond_to?(:present?)")) |> to_eq("true")
       end
 
+      it "the Rubixir file" do
+        expect(Rubixir.run_sync("$rubixir")) |> to_eq("true")
+      end
+
     end
 
   end
