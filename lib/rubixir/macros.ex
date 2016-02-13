@@ -10,6 +10,15 @@ defmodule Rubixir.Macros do
     end
   end
 
+  defmacro ruby([do: block]) do
+    code = to_ruby_string(block)
+    quote do
+      run_sync("""
+        #{unquote(code)}
+      """)
+    end
+  end
+
   ### Blocks of code ###
   def to_ruby_string({:__block__, _, lines}) do
     Enum.map(lines, &to_ruby_string/1) |> Enum.join("\n")

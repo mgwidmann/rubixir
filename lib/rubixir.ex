@@ -14,20 +14,35 @@ defmodule Rubixir do
 
     children = [
       # Define workers and child supervisors to be supervised
-      worker(Rubixir.Worker, []),
+      :poolboy.child_spec(Rubixir.Worker.pool_name, Rubixir.Worker.pool_config, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :simple_one_for_one, name: Rubixir.Supervisor]
+    opts = [strategy: :one_for_one, name: Rubixir.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
   defdelegate run(worker, statement), to: Rubixir.Worker
   defdelegate run_sync(worker, statement), to: Rubixir.Worker
 
-  def new(opts \\ []) do
-    {:ok, worker} = Supervisor.start_child Rubixir.Supervisor, [[require: opts[:require]]]
-    worker
+  def run(statement) do
+    :poolboy.transaction(Rubixir.Worker.pool_name, fn(worker)->
+      run(worker, statement)
+    end)
+  end
+
+  def run_sync(statement) do
+    :poolboy.transaction(Rubixir.Worker.pool_name, fn(worker)->
+      run_sync(worker, statement)
+    end)
+  end
+
+  def new() do
+    :poolboy.checkout(Rubixir.Worker.pool_name)
+  end
+
+  def close(worker) do
+    :poolboy.checkin(Rubixir.Worker.pool_name, worker)
   end
 end

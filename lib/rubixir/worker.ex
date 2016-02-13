@@ -13,6 +13,16 @@ defmodule Rubixir.Worker do
     end
   """
 
+  @pool_config [
+    name: {:local, __MODULE__},
+    worker_module: __MODULE__,
+    size: Application.get_env(:rubixir, __MODULE__)[:size],
+    max_overflow: Application.get_env(:rubixir, __MODULE__)[:max_overflow]
+  ]
+
+  def pool_name(), do: __MODULE__
+  def pool_config(), do: @pool_config
+
   def start_link(opts) do
     GenServer.start_link __MODULE__, opts
   end
@@ -44,7 +54,7 @@ defmodule Rubixir.Worker do
   def handle_cast({:run, statement, requested, ref}, {ruby, jobs}) do
     Logger.debug "Running:\n#{statement}"
     Proc.send_input(ruby, "#{statement}\n")
-    {:noreply, {ruby, [ %Job{statement: statement, requested: requested, ref: ref} | jobs]}}
+    {:noreply, {ruby, [ %Job{statement: statement, requested: requested, ref: ref, return: String.split(statement, "\n", trim: true) |> Enum.count} | jobs]}}
   end
 
   def handle_info({_port, :data, :out, data}, {ruby, jobs}) do
@@ -57,12 +67,19 @@ defmodule Rubixir.Worker do
     {:stop, :eof_stdin, state}
   end
 
+  defp handle_jobs("\n", []), do: []
   defp handle_jobs(result, [job | jobs]) when is_binary(result) do
-    result = String.split(result, "\n", trim: true) |> List.last
-    send(job.requested, {:ruby, job.ref, result})
+    result = String.split(result, "\n", trim: true)
+    result_count = Enum.count(result)
+    if job.return - result_count == 0 do
+      send(job.requested, {:ruby, job.ref, result |> List.last})
+      jobs
+    else
+      [%{job | return: job.return - result_count}]
+    end
   end
-  defp handle_jobs(results, jobs) do
-    raise "Mismatch of results and jobs: \nresults: #{inspect results}\njobs: #{inspect jobs}"
+  defp handle_jobs(result, jobs) do
+    raise "Mismatch of results and jobs: \nresult: #{inspect result}\njobs: #{inspect jobs}"
   end
 
 end
