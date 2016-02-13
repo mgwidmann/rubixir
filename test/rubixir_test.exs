@@ -34,13 +34,20 @@ defmodule RubixirTest do
     context "runs a command" do
 
       it "runs async" do
-        w = worker # Need local variable for ^ pin below
-        Rubixir.run(w, "1")
-        assert_receive {:ruby, ^w, "1"}
+        ref = Rubixir.run(worker, "1")
+        assert_receive {:ruby, ^ref, "1"}
       end
 
       it "runs sync" do
         expect(Rubixir.run_sync(worker, "1")) |> to_eq("1")
+      end
+
+    end
+
+    context "runs multiple commands" do
+
+      it "returns the last value" do
+        expect(Rubixir.run_sync(worker, "1\n2")) |> to_eq("2")
       end
 
     end

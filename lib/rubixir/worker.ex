@@ -25,25 +25,26 @@ defmodule Rubixir.Worker do
   end
 
   def run(worker, statement) do
-    GenServer.cast(worker, {:run, statement, self})
-    worker
+    ref = make_ref()
+    GenServer.cast(worker, {:run, statement, self, ref})
+    ref
   end
 
   def run_sync(worker, statement) do
     run(worker, statement)
-    |> receive_result
+    |> await
   end
 
-  def receive_result(worker) do
+  def await(ref) do
     receive do
-      {:ruby, ^worker, data} -> data
+      {:ruby, ^ref, data} -> data
     end
   end
 
-  def handle_cast({:run, statement, requested}, {ruby, jobs}) do
+  def handle_cast({:run, statement, requested, ref}, {ruby, jobs}) do
     Logger.debug "Running:\n#{statement}"
     Proc.send_input(ruby, "#{statement}\n")
-    {:noreply, {ruby, [ %Job{statement: statement, requested: requested} | jobs]}}
+    {:noreply, {ruby, [ %Job{statement: statement, requested: requested, ref: ref} | jobs]}}
   end
 
   def handle_info({_port, :data, :out, data}, {ruby, jobs}) do
@@ -56,11 +57,9 @@ defmodule Rubixir.Worker do
     {:stop, :eof_stdin, state}
   end
 
-  defp handle_jobs(data, jobs) when is_binary(data) do
-    handle_jobs(String.split(data, "\n", trim: true), jobs)
-  end
-  defp handle_jobs([result | results], [job | jobs]) do
-    send(job.requested, {:ruby, self, result})
+  defp handle_jobs(result, [job | jobs]) when is_binary(result) do
+    result = String.split(result, "\n", trim: true) |> List.last
+    send(job.requested, {:ruby, job.ref, result})
   end
   defp handle_jobs(results, jobs) do
     raise "Mismatch of results and jobs: \nresults: #{inspect results}\njobs: #{inspect jobs}"
