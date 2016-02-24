@@ -11,10 +11,18 @@ defmodule RubixirTest do
         expect(Rubixir.run_sync("a = 1")) |> to_eq("1")
       end
 
-      it "retains variables" do
-        worker = Rubixir.new
-        Rubixir.run_sync(worker, "a = 1")
-        expect(Rubixir.run_sync(worker, "a += 1")) |> to_eq("2")
+      context "using the same worker" do
+        let :worker, do: Rubixir.new
+        before :each do
+          on_exit fn ->
+            Rubixir.close worker
+          end
+        end
+        it "retains variables" do
+          Rubixir.run_sync(worker, "a = 1")
+          expect(Rubixir.run_sync(worker, "a += 1")) |> to_eq("2")
+
+        end
       end
     end
 
@@ -45,12 +53,20 @@ defmodule RubixirTest do
 
     context "requires" do
 
+      let :worker, do: Rubixir.new
+
+      before :each do
+        on_exit fn ->
+          Rubixir.close worker
+        end
+      end
+
       it "after startup" do
-        expect(Rubixir.run_sync(Rubixir.new, "require('active_support') || require('active_support/core_ext') || true")) |> to_eq("true")
+        expect(Rubixir.run_sync(worker, "require('active_support') || require('active_support/core_ext') || true")) |> to_eq("true")
       end
 
       it "code is available" do
-        expect(Rubixir.run_sync(Rubixir.new, "require('active_support')\nrequire('active_support/core_ext')\n1.respond_to?(:present?)")) |> to_eq("true")
+        expect(Rubixir.run_sync(worker, "require('active_support')\nrequire('active_support/core_ext')\n1.respond_to?(:present?)")) |> to_eq("true")
       end
 
       it "the Rubixir file" do
@@ -59,6 +75,32 @@ defmodule RubixirTest do
 
     end
 
+  end
+
+  describe "puts" do
+    import ExUnit.CaptureIO
+
+    let :worker, do: Rubixir.new
+
+    before :each do
+      on_exit fn ->
+        Rubixir.close worker
+      end
+    end
+
+    @tag :focus
+    it "forwards output to elixir to print" do
+      # IO.puts "before changing io"
+      # worker
+      # |> Rubixir.Worker.change_io(:erlang.group_leader)
+
+      # IO.puts "after changing io"
+
+      # expect capture_io(fn ->
+      IO.inspect worker
+        Rubixir.run_sync worker, ~s(puts "Hello Rubixir!")
+      # end) == "Hello Rubixir!\n"
+    end
   end
 
 end
