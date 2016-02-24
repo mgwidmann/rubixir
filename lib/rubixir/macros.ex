@@ -4,7 +4,7 @@ defmodule Rubixir.Macros do
   defmacro ruby(worker, [do: block]) do
     code = to_ruby_string(block)
     quote do
-      run_sync(unquote(worker), """
+      Rubixir.run_sync(unquote(worker), """
         #{unquote(code)}
       """)
     end
@@ -13,7 +13,7 @@ defmodule Rubixir.Macros do
   defmacro ruby([do: block]) do
     code = to_ruby_string(block)
     quote do
-      run_sync("""
+      Rubixir.run_sync("""
         #{unquote(code)}
       """)
     end
