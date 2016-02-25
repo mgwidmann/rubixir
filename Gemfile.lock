@@ -1,0 +1,17 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    binary-protocol (0.0.1)
+    erlang-etf (1.1.1)
+      binary-protocol
+      erlang-terms (>= 1.1.0)
+    erlang-terms (1.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  erlang-etf
+
+BUNDLED WITH
+   1.11.2

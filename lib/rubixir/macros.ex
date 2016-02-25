@@ -61,10 +61,10 @@ defmodule Rubixir.Macros do
   end
 
   ### Methods ###
-  def to_ruby_string({{:., [], [Access, :get]}, _, [variable, key]}) do
+  def to_ruby_string({{:., _, [Access, :get]}, _, [variable, key]}) do
     "#{raw_pattern(variable)}[#{to_ruby_string(key)}]"
   end
-  def to_ruby_string({{:., [], [module, method]}, _, params}) do
+  def to_ruby_string({{:., _, [module, method]}, _, params}) do
     "#{to_ruby_string(module)}.#{method}(#{params_to_ruby_string(params)})"
   end
 
@@ -136,7 +136,7 @@ defmodule Rubixir.Macros do
   def to_ruby_string(m) when is_map(m), do: to_ruby_hash(m)
   def to_ruby_string({:{}, _, elements}), do: to_ruby_string(elements)
   # Local function call
-  def to_ruby_string({method, _, params}) when is_list(params) do
+  def to_ruby_string({method, _, params}) when is_list(params) and is_atom(method) do
     "#{method}(#{params_to_ruby_string(params)})"
   end
   # Local variable
