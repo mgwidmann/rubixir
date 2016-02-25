@@ -54,15 +54,15 @@ You can then talk directly to a ruby process like so:
 ```elixir
 iex> worker = Rubixir.new
 iex> ruby worker do
-iex>   "Hello Rubixir world!"
+iex>   puts "Hello Rubixir world!"
 iex> end
 Hello Rubixir world!
 ```
 
 And get data back from it (in development):
 
-    iex> worker = Rubixir.new
-    iex> user_id = 123
-    iex> user_posts = ruby worker do
-    iex>   User.find(unquote(user_id)).posts
-    iex> end
+```elixir
+iex> user_posts = ruby do
+iex>   User.find(unquote(user_id)).posts
+iex> end
+```
