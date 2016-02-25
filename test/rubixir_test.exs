@@ -32,6 +32,7 @@ defmodule RubixirTest do
 
     context "runs a command" do
 
+      @tag :focus
       it "runs async" do
         ref = Rubixir.run("1")
         assert_receive {:ruby, ^ref, "1"}
@@ -97,8 +98,7 @@ defmodule RubixirTest do
       # IO.puts "after changing io"
 
       # expect capture_io(fn ->
-      IO.inspect worker
-        Rubixir.run_sync worker, ~s(puts "Hello Rubixir!")
+        Rubixir.run_sync worker, ~s(STDERR.puts "Hello Rubixir!")
       # end) == "Hello Rubixir!\n"
     end
   end
