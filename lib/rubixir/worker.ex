@@ -10,8 +10,23 @@ defmodule Rubixir.Worker do
     STDOUT.sync = true
     context = binding
 
+    module Rubixir
+      extend self
+      def transfer_data(object)
+        STDOUT.original_puts object.inspect
+      end
+    end
+
+    module Kernel
+      alias_method :original_puts, :puts
+      def puts(s)
+        original_puts ":__rubixir__ \#{s.inspect}"
+      end
+      public :original_puts
+    end
+
     while (cmd = gets) do
-      puts eval(cmd, context).inspect
+      Rubixir.transfer_data eval(cmd, context)
     end
   """
 
@@ -33,7 +48,7 @@ defmodule Rubixir.Worker do
     requires = Enum.map(opts[:require] || [], &("-r#{to_string(&1)}"))
     script = "ruby -e '#{@ruby_loop}' #{Enum.join(requires, " ")}"
     ruby = Porcelain.spawn_shell(script, out: {:send, self}, in: :receive)
-    {:ok, {ruby, []}}
+    {:ok, {ruby, [], :erlang.group_leader}}
   end
 
   def run(worker, statement) do
@@ -53,15 +68,20 @@ defmodule Rubixir.Worker do
     end
   end
 
-  def handle_cast({:run, statement, requested, ref}, {ruby, jobs}) do
+  def handle_cast({:run, statement, requested, ref}, {ruby, jobs, gl}) do
     Logger.debug "Running:\n#{statement}"
-    Proc.send_input(ruby, "#{statement}\n")
-    {:noreply, {ruby, [ %Job{statement: statement, requested: requested, ref: ref, return: String.split(statement, "\n", trim: true) |> Enum.count} | jobs]}}
+    statement = "#{String.strip(statement)}\n"
+    Proc.send_input(ruby, statement)
+    {:noreply, {ruby, [ %Job{statement: statement, requested: requested, ref: ref, return: String.split(statement, "\n", trim: true) |> Enum.count} | jobs], gl}}
   end
 
-  def handle_info({_port, :data, :out, data}, {ruby, jobs}) do
-    jobs = handle_jobs(data, jobs)
-    {:noreply, {ruby, jobs}}
+  def handle_cast({:puts_device, group_leader}, {ruby, jobs, _gl}) do
+    {:noreply, {ruby, jobs, group_leader}}
+  end
+
+  def handle_info({_port, :data, :out, data}, {ruby, jobs, gl}) do
+    jobs = handle_jobs(data, jobs, gl)
+    {:noreply, {ruby, jobs, gl}}
   end
 
   def handle_info({_port, :result, %Porcelain.Result{} = result}, state) do
@@ -69,11 +89,16 @@ defmodule Rubixir.Worker do
     {:stop, :eof_stdin, state}
   end
 
-  defp handle_jobs("\n", []), do: []
-  defp handle_jobs(result, [job | jobs]) when is_binary(result) do
+  def change_io(worker, group_leader) do
+    GenServer.cast(worker, {:puts_device, group_leader})
+  end
+
+  defp handle_jobs("\n", [], _), do: []
+  defp handle_jobs(result, [job | jobs], gl) when is_binary(result) do
     result = String.split(result, "\n", trim: true)
+             |> puts_ruby([], gl)
     result_count = Enum.count(result)
-    if job.return - result_count == 0 do
+    if job.return - result_count <= 0 do
       send(job.requested, {:ruby, job.ref, result |> List.last})
       jobs
     else
@@ -82,6 +107,19 @@ defmodule Rubixir.Worker do
   end
   defp handle_jobs(result, jobs) do
     raise "Mismatch of results and jobs: \nresult: #{inspect result}\njobs: #{inspect jobs}"
+  end
+
+  defp puts_ruby([], acc, _), do: Enum.reverse(acc)
+  defp puts_ruby([~s(:__rubixir__ ) <> string | rest], acc, gl) do
+    puts = string
+           |> String.splitter(~s("), trim: true)
+           |> Enum.join
+    IO.puts(gl, puts)
+
+    puts_ruby(rest, ["nil" | acc], gl)
+  end
+  defp puts_ruby([i | rest], acc, gl) do
+    puts_ruby(rest, [i|acc], gl)
   end
 
 end

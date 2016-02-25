@@ -21,7 +21,6 @@ defmodule RubixirTest do
         it "retains variables" do
           Rubixir.run_sync(worker, "a = 1")
           expect(Rubixir.run_sync(worker, "a += 1")) |> to_eq("2")
-
         end
       end
     end
@@ -88,18 +87,14 @@ defmodule RubixirTest do
       end
     end
 
-    @tag :focus
+
     it "forwards output to elixir to print" do
-      # IO.puts "before changing io"
-      # worker
-      # |> Rubixir.Worker.change_io(:erlang.group_leader)
+      worker
+      |> Rubixir.Worker.change_io(:erlang.group_leader)
 
-      # IO.puts "after changing io"
-
-      # expect capture_io(fn ->
-      IO.inspect worker
+      expect capture_io(fn ->
         Rubixir.run_sync worker, ~s(puts "Hello Rubixir!")
-      # end) == "Hello Rubixir!\n"
+      end) == "Hello Rubixir!\n"
     end
   end
 
